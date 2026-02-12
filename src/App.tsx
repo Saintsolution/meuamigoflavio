@@ -52,7 +52,7 @@ function App() {
     setIsSubmitting(true);
     setSubmitMessage('');
 
-    const WEBHOOK_URL = 'https://n8n.saintsolution.com.br/webhook-test/ab40ce52-2fdf-413f-8a30-8fe6125290d0';
+    const WEBHOOK_URL = 'https://n8n.saintsolution.com.br/webhook/ab40ce52-2fdf-413f-8a30-8fe6125290d0';
 
     try {
       if (!formData.image) {
