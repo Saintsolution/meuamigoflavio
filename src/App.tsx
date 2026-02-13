@@ -206,6 +206,50 @@ function App() {
                 </div>
 
               </div>
+{/* CENÁRIOS */}
+<div>
+  <p className="text-[#003366] font-black uppercase tracking-widest text-sm text-center mb-8">
+    1. Escolha um Cenário
+  </p>
+
+  <div className="grid sm:grid-cols-3 gap-8">
+
+    {scenarios.map((s) => (
+      <div
+        key={s.id}
+        onClick={() => setFormData(p => ({ ...p, scenario: s.id }))}
+        className={`group cursor-pointer rounded-[2rem] overflow-hidden border-4 transition-all ${
+          formData.scenario === s.id
+            ? 'border-[#006400] scale-105 shadow-2xl'
+            : 'border-transparent bg-white'
+        }`}
+      >
+
+        <img
+          src={s.image}
+          alt={s.label}
+          className="w-full h-48 object-cover"
+        />
+
+        <div className="p-4 text-center">
+
+          <p
+            className={`text-xs font-bold uppercase ${
+              formData.scenario === s.id
+                ? 'text-[#006400]'
+                : 'text-[#003366]'
+            }`}
+          >
+            {s.label}
+          </p>
+
+        </div>
+
+      </div>
+    ))}
+
+  </div>
+</div>
 
 
               {/* INPUTS */}
