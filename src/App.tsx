@@ -4,6 +4,7 @@ import { Upload, Calendar, Briefcase, Copy, Check, Info, UserCheck } from 'lucid
 interface FormData {
   name: string;
   email: string;
+  phone: string; 
   height: string;
   scenario: string;
   image: File | null;
@@ -13,6 +14,7 @@ function App() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
+    phone: '',
     height: '',
     scenario: '',
     image: null
@@ -71,6 +73,7 @@ function App() {
         const payload = {
           name: formData.name,
           email: formData.email,
+          phone: formData.phone,
           height: formData.height,
           scenario: formData.scenario,
           image: base64Image,
@@ -85,7 +88,7 @@ function App() {
 
         if (response.ok) {
           setSubmitMessage('Imagem enviada com sucesso! Verifique seu e-mail em breve.');
-          setFormData({ name: '', email: '', height: '', scenario: '', image: null });
+          setFormData({ name: '', email: '', phone: '', height: '', scenario: '', image: null });
         } else {
           setSubmitMessage('Erro no envio. Tente novamente.');
         }
@@ -104,19 +107,15 @@ function App() {
       {/* HEADER */}
       <header className="bg-[#006400] shadow-2xl py-14 border-b-8 border-[#FFD700]">
         <div className="max-w-7xl mx-auto px-4 text-center">
-
           <p className="text-white font-light tracking-[0.4em] uppercase text-xs mb-4 opacity-80">
             Gerador de Fotos
           </p>
-
           <h1 className="text-5xl sm:text-8xl font-black text-[#FFD700] italic">
             MEU AMIGO FLÁVIO
           </h1>
-
           <p className="mt-8 text-lg sm:text-2xl font-light text-white/90">
             Um legado de cidadania ao Brasil
           </p>
-
         </div>
       </header>
 
@@ -124,137 +123,101 @@ function App() {
       {/* MAIN */}
       <main className="max-w-7xl mx-auto px-4 py-16">
 
-
         {/* TRAJETÓRIA */}
         <section className="mb-28">
-
           <h2 className="text-3xl font-bold text-center mb-16 text-[#003366] uppercase tracking-widest">
             Trajetória do Cidadão
           </h2>
-
           <div className="grid md:grid-cols-2 gap-12">
-
-
             <div className="bg-slate-50 rounded-[2rem] p-10 border-t-4 border-[#006400] shadow-sm">
-
               <div className="flex items-center mb-6 text-[#003366]">
                 <Calendar className="w-10 h-10 mr-4 text-[#006400]" />
                 <h3 className="text-2xl font-black">Atuação Legislativa</h3>
               </div>
-
               <p className="text-gray-600 leading-relaxed text-lg">
                 Décadas de dedicação ao Rio de Janeiro, com foco firme em segurança pública.
               </p>
-
             </div>
-
-
             <div className="bg-slate-50 rounded-[2rem] p-10 border-t-4 border-[#FFD700] shadow-sm">
-
               <div className="flex items-center mb-6 text-[#003366]">
                 <Briefcase className="w-10 h-10 mr-4 text-[#FFD700]" />
                 <h3 className="text-2xl font-black">Compromisso Nacional</h3>
               </div>
-
               <p className="text-gray-600 leading-relaxed text-lg">
                 Representação ativa no cenário nacional, buscando o desenvolvimento econômico.
               </p>
-
             </div>
-
           </div>
-
         </section>
 
 
         {/* FORM */}
         <section className="bg-slate-50 rounded-[4rem] p-8 lg:p-20 shadow-inner border border-gray-100">
-
           <div className="text-center mb-16">
-
             <h2 className="text-4xl sm:text-5xl font-black text-[#003366] mb-8">
               Participe da Trend
             </h2>
-
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
               Siga o modelo abaixo para garantir uma montagem perfeita!
             </p>
-
           </div>
 
-
           <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-
             <div className="space-y-12">
-
-
-              {/* REFERÊNCIA */}
               <div className="mb-16">
-
                 <p className="text-[#003366] font-black uppercase tracking-widest text-sm text-center mb-6">
                   Como tirar sua foto
                 </p>
-
                 <div className="max-w-[200px] mx-auto bg-white p-3 rounded-[1.5rem] shadow-lg border">
-
-                  <img
-                    src="/referencia.webp"
-                    alt="Referência"
-                    className="w-full rounded-[1rem] grayscale opacity-60"
-                  />
-
+                  <img src="/referencia.webp" alt="Referência" className="w-full rounded-[1rem] grayscale opacity-60" />
                 </div>
-
               </div>
-{/* CENÁRIOS */}
-<div>
-  <p className="text-[#003366] font-black uppercase tracking-widest text-sm text-center mb-8">
-    1. Escolha um Cenário
-  </p>
 
-  <div className="grid sm:grid-cols-3 gap-8">
+              {/* CENÁRIOS */}
+              <div>
+                <p className="text-[#003366] font-black uppercase tracking-widest text-sm text-center mb-8">
+                  1. Escolha um Cenário
+                </p>
+                <div className="grid sm:grid-cols-3 gap-8">
+                  {scenarios.map((s) => (
+                    <div
+                      key={s.id}
+                      onClick={() => setFormData(p => ({ ...p, scenario: s.id }))}
+                      className={`group cursor-pointer rounded-[2rem] overflow-hidden border-4 transition-all ${
+                        formData.scenario === s.id ? 'border-[#006400] scale-105 shadow-2xl' : 'border-transparent bg-white'
+                      }`}
+                    >
+                      <img src={s.image} alt={s.label} className="w-full h-48 object-cover" />
+                      <div className="p-4 text-center">
+                        <p className={`text-xs font-bold uppercase ${formData.scenario === s.id ? 'text-[#006400]' : 'text-[#003366]'}`}>
+                          {s.label}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-    {scenarios.map((s) => (
-      <div
-        key={s.id}
-        onClick={() => setFormData(p => ({ ...p, scenario: s.id }))}
-        className={`group cursor-pointer rounded-[2rem] overflow-hidden border-4 transition-all ${
-          formData.scenario === s.id
-            ? 'border-[#006400] scale-105 shadow-2xl'
-            : 'border-transparent bg-white'
-        }`}
-      >
-
-        <img
-          src={s.image}
-          alt={s.label}
-          className="w-full h-48 object-cover"
-        />
-
-        <div className="p-4 text-center">
-
-          <p
-            className={`text-xs font-bold uppercase ${
-              formData.scenario === s.id
-                ? 'text-[#006400]'
-                : 'text-[#003366]'
-            }`}
-          >
-            {s.label}
-          </p>
-
-        </div>
-
-      </div>
-    ))}
-
-  </div>
-</div>
-
-
-              {/* INPUTS */}
+              {/* INPUTS - NOME, CELULAR, EMAIL, ALTURA */}
               <div className="grid sm:grid-cols-2 gap-8">
-
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Seu Nome Completo"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-8 py-5 rounded-2xl border-2 border-gray-100 bg-white shadow-sm"
+                />
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Seu Celular (WhatsApp)"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-8 py-5 rounded-2xl border-2 border-gray-100 bg-white shadow-sm"
+                />
                 <input
                   type="email"
                   name="email"
@@ -264,7 +227,6 @@ function App() {
                   required
                   className="w-full px-8 py-5 rounded-2xl border-2 border-gray-100 bg-white shadow-sm"
                 />
-
                 <input
                   type="number"
                   name="height"
@@ -274,37 +236,19 @@ function App() {
                   required
                   className="w-full px-8 py-5 rounded-2xl border-2 border-gray-100 bg-white shadow-sm"
                 />
-
               </div>
 
-
-              {/* UPLOAD + BOTÃO + MENSAGEM */}
+              {/* UPLOAD + BOTÃO */}
               <div className="flex flex-col gap-8">
-
-
                 <label className="cursor-pointer group">
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                   <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-300 rounded-[2rem] group-hover:border-[#006400] bg-white">
-
                     <Upload className="w-10 h-10 mb-4 text-gray-300 group-hover:text-[#006400]" />
-
                     <span className="text-gray-500 font-bold uppercase text-xs">
-                      {formData.image
-                        ? formData.image.name
-                        : 'Selecione sua foto'}
+                      {formData.image ? formData.image.name : 'Selecione sua foto'}
                     </span>
-
                   </div>
-
                 </label>
-
 
                 <button
                   type="submit"
@@ -314,88 +258,63 @@ function App() {
                   {isSubmitting ? 'Gerando sua foto...' : 'Gerar Minha Foto'}
                 </button>
 
-
                 {submitMessage && (
-
                   <div className="mt-6 p-6 rounded-2xl bg-[#003366] text-white text-center font-bold text-lg animate-pulse">
-
                     {submitMessage}
-
                   </div>
-
                 )}
-
               </div>
-
             </div>
-
           </form>
-
         </section>
-
       </main>
 
 
-      {/* FOOTER */}
+      {/* FOOTER - PIX E LINKS DE APOIO AQUI EMBAIXO */}
       <footer className="bg-[#0b1221] text-white pt-16 pb-12 border-t-8 border-[#FFD700]">
-
         <div className="max-w-4xl mx-auto px-4">
-
-
-          {/* PARCEIRO + DISCLAIMER */}
-          <div className="mt-16 pt-8 border-t border-white/10 text-center flex flex-col items-center gap-10">
-
-
-            {/* PARCEIRO */}
-            <a
-              href="https://consultoquesite.netlify.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group transition-transform hover:scale-105"
-            >
-
-              <img
-                src="/consultoque.webp"
-                alt="ConsulToque"
-                className="h-28 w-auto opacity-70 group-hover:opacity-100 transition-opacity"
-              />
-
-              <p className="text-sm text-gray-300 mt-3 uppercase tracking-widest font-bold">
-                Parceiro Apoiador
-              </p>
-
-            </a>
-
-
-            {/* DISCLAIMER */}
-            <div className="max-w-3xl">
-
-              <div className="flex items-center justify-center gap-2 text-gray-300 mb-2">
-
-                <Info className="w-4 h-4" />
-
-                <span className="text-sm uppercase tracking-widest font-bold">
-                  Disclaimer Legal
-                </span>
-
+          
+          <div className="mb-16 bg-white/5 rounded-[2rem] p-8 border border-white/10 text-center">
+            <h2 className="text-2xl font-black text-[#FFD700] mb-4 flex items-center justify-center gap-3 italic">
+              <UserCheck className="w-6 h-6" />
+              APOIE ESTA TREND
+            </h2>
+            <p className="text-gray-300 text-sm mb-8 uppercase tracking-widest">
+              O processamento de IA tem custos. Ajude-nos a manter o projeto!
+            </p>
+            
+            <div className="flex flex-col items-center gap-6">
+              <div className="bg-white p-3 rounded-2xl">
+                <img src="/qrcode.png" alt="QR Code PIX" className="w-40 h-40" />
               </div>
-
-              <p className="text-sm text-gray-400 leading-relaxed uppercase tracking-wide">
-
-                Uso pessoal e de entretenimento. Sem valor oficial ou propaganda política.
-                O usuário é o único responsável pelo uso das imagens geradas.
-
-              </p>
-
+              <button 
+                onClick={copyToClipboard}
+                className="flex items-center gap-2 bg-[#FFD700] text-[#006400] px-6 py-3 rounded-full font-black text-xs uppercase tracking-tighter"
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? "Copiado!" : "Copiar Chave PIX"}
+              </button>
             </div>
-
-
           </div>
 
+          <div className="mt-16 pt-8 border-t border-white/10 text-center flex flex-col items-center gap-10">
+            <a href="https://consultoquesite.netlify.app/" target="_blank" rel="noopener noreferrer" className="group">
+              <img src="/consultoque.webp" alt="ConsulToque" className="h-28 w-auto opacity-70 group-hover:opacity-100" />
+              <p className="text-sm text-gray-300 mt-3 uppercase tracking-widest font-bold">Parceiro Apoiador</p>
+            </a>
+
+            <div className="max-w-3xl">
+              <div className="flex items-center justify-center gap-2 text-gray-300 mb-2">
+                <Info className="w-4 h-4" />
+                <span className="text-sm uppercase tracking-widest font-bold">Disclaimer Legal</span>
+              </div>
+              <p className="text-sm text-gray-400 leading-relaxed uppercase tracking-wide">
+                Uso pessoal e de entretenimento. Sem valor oficial ou propaganda política. O usuário é o único responsável pelo uso das imagens geradas.
+              </p>
+            </div>
+          </div>
         </div>
-
       </footer>
-
     </div>
   );
 }
