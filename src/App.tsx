@@ -50,6 +50,44 @@ function App() {
     }
   };
 
+  // --- NOVA FUNÇÃO DE COMPRESSÃO ---
+  const compressAndSend = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          // Limite de 1080px para não sobrecarregar o n8n
+          const MAX_WIDTH = 1080;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Qualidade em 0.7 (70%) gera um excelente equilíbrio peso/qualidade
+          const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+          resolve(base64);
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -64,47 +102,43 @@ function App() {
         return;
       }
 
-      const reader = new FileReader();
-      reader.readAsDataURL(formData.image);
+      // Executa a compressão antes do envio
+      const compressedImage = await compressAndSend(formData.image);
 
-      reader.onload = async () => {
-        const base64Image = (reader.result as string).split(',')[1];
-
-        const payload = {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          height: formData.height,
-          scenario: formData.scenario,
-          image: base64Image,
-          fileName: formData.image?.name
-        };
-
-        const response = await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-          setSubmitMessage('Imagem enviada com sucesso! Verifique seu e-mail em breve.');
-          setFormData({ name: '', email: '', phone: '', height: '', scenario: '', image: null });
-        } else {
-          setSubmitMessage('Erro no envio. Tente novamente.');
-        }
-
-        setIsSubmitting(false);
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        height: formData.height,
+        scenario: formData.scenario,
+        image: compressedImage,
+        fileName: formData.image.name.replace(/\.[^/.]+$/, "") + ".jpg"
       };
-    } catch {
-      setSubmitMessage('Erro ao processar a solicitação.');
+
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        setSubmitMessage('Imagem enviada com sucesso! Verifique seu e-mail em breve.');
+        setFormData({ name: '', email: '', phone: '', height: '', scenario: '', image: null });
+      } else {
+        setSubmitMessage('Erro no envio. Tente novamente.');
+      }
+
+    } catch (error) {
+      console.error(error);
+      setSubmitMessage('Erro ao processar a imagem. Tente uma foto diferente.');
+    } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
-
-      {/* HEADER */}
+      {/* O RESTANTE DO SEU JSX CONTINUA IGUAL... */}
       <header className="bg-[#006400] shadow-2xl py-14 border-b-8 border-[#FFD700]">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-white font-light tracking-[0.4em] uppercase text-xs mb-4 opacity-80">
@@ -119,11 +153,7 @@ function App() {
         </div>
       </header>
 
-
-      {/* MAIN */}
       <main className="max-w-7xl mx-auto px-4 py-16">
-
-        {/* TRAJETÓRIA */}
         <section className="mb-28">
           <h2 className="text-3xl font-bold text-center mb-16 text-[#003366] uppercase tracking-widest">
             Trajetória do Cidadão
@@ -150,8 +180,6 @@ function App() {
           </div>
         </section>
 
-
-        {/* FORM */}
         <section className="bg-slate-50 rounded-[4rem] p-8 lg:p-20 shadow-inner border border-gray-100">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-black text-[#003366] mb-8">
@@ -173,7 +201,6 @@ function App() {
                 </div>
               </div>
 
-              {/* CENÁRIOS */}
               <div>
                 <p className="text-[#003366] font-black uppercase tracking-widest text-sm text-center mb-8">
                   1. Escolha um Cenário
@@ -198,7 +225,6 @@ function App() {
                 </div>
               </div>
 
-              {/* INPUTS - NOME, CELULAR, EMAIL, ALTURA */}
               <div className="grid sm:grid-cols-2 gap-8">
                 <input
                   type="text"
@@ -238,7 +264,6 @@ function App() {
                 />
               </div>
 
-              {/* UPLOAD + BOTÃO */}
               <div className="flex flex-col gap-8">
                 <label className="cursor-pointer group">
                   <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
@@ -269,11 +294,8 @@ function App() {
         </section>
       </main>
 
-
-      {/* FOOTER - PIX E LINKS DE APOIO AQUI EMBAIXO */}
       <footer className="bg-[#0b1221] text-white pt-16 pb-12 border-t-8 border-[#FFD700]">
         <div className="max-w-4xl mx-auto px-4">
-          
           <div className="mb-16 bg-white/5 rounded-[2rem] p-8 border border-white/10 text-center">
             <h2 className="text-2xl font-black text-[#FFD700] mb-4 flex items-center justify-center gap-3 italic">
               <UserCheck className="w-6 h-6" />
@@ -282,7 +304,6 @@ function App() {
             <p className="text-gray-300 text-sm mb-8 uppercase tracking-widest">
               O processamento de IA tem custos. Ajude-nos a manter o projeto!
             </p>
-            
             <div className="flex flex-col items-center gap-6">
               <div className="bg-white p-3 rounded-2xl">
                 <img src="/qrcode.png" alt="QR Code PIX" className="w-40 h-40" />
@@ -302,7 +323,6 @@ function App() {
               <img src="/consultoque.webp" alt="ConsulToque" className="h-28 w-auto opacity-70 group-hover:opacity-100" />
               <p className="text-sm text-gray-300 mt-3 uppercase tracking-widest font-bold">Parceiro Apoiador</p>
             </a>
-
             <div className="max-w-3xl">
               <div className="flex items-center justify-center gap-2 text-gray-300 mb-2">
                 <Info className="w-4 h-4" />
