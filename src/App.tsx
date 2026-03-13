@@ -50,8 +50,7 @@ function App() {
     }
   };
 
-  // --- NOVA FUNÇÃO DE COMPRESSÃO ---
-  const compressAndSend = (file: File) => {
+  const compressAndSend = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -64,7 +63,6 @@ function App() {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
 
-          // Limite de 1080px para não sobrecarregar o n8n
           const MAX_WIDTH = 1080;
           let width = img.width;
           let height = img.height;
@@ -78,7 +76,6 @@ function App() {
           canvas.height = height;
           ctx?.drawImage(img, 0, 0, width, height);
 
-          // Qualidade em 0.7 (70%) gera um excelente equilíbrio peso/qualidade
           const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
           resolve(base64);
         };
@@ -97,22 +94,21 @@ function App() {
 
     try {
       if (!formData.image) {
-        setSubmitMessage('Por favor, envie uma imagem.');
+        setSubmitMessage('Por favor, selecione uma foto antes de gerar.');
         setIsSubmitting(false);
         return;
       }
 
-      // Executa a compressão antes do envio
       const compressedImage = await compressAndSend(formData.image);
 
       const payload = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        height: formData.height,
+        height: parseInt(formData.height, 10), // Convertido para número para o algoritmo do n8n
         scenario: formData.scenario,
         image: compressedImage,
-        fileName: formData.image.name.replace(/\.[^/.]+$/, "") + ".jpg"
+        fileName: `${Date.now()}_${formData.name.split(' ')[0].toLowerCase()}.jpg`
       };
 
       const response = await fetch(WEBHOOK_URL, {
@@ -122,15 +118,18 @@ function App() {
       });
 
       if (response.ok) {
-        setSubmitMessage('Imagem enviada com sucesso! Verifique seu e-mail em breve.');
+        setSubmitMessage('Sucesso! Sua foto está sendo processada. Verifique seu e-mail em instantes.');
         setFormData({ name: '', email: '', phone: '', height: '', scenario: '', image: null });
+        
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        if (fileInput) fileInput.value = "";
       } else {
-        setSubmitMessage('Erro no envio. Tente novamente.');
+        setSubmitMessage('Erro no envio. Tente novamente em alguns instantes.');
       }
 
     } catch (error) {
       console.error(error);
-      setSubmitMessage('Erro ao processar a imagem. Tente uma foto diferente.');
+      setSubmitMessage('Erro ao processar. Tente uma foto diferente ou verifique sua conexão.');
     } finally {
       setIsSubmitting(false);
     }
@@ -138,7 +137,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
-      {/* O RESTANTE DO SEU JSX CONTINUA IGUAL... */}
       <header className="bg-[#006400] shadow-2xl py-14 border-b-8 border-[#FFD700]">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-white font-light tracking-[0.4em] uppercase text-xs mb-4 opacity-80">
@@ -319,7 +317,7 @@ function App() {
           </div>
 
           <div className="mt-16 pt-8 border-t border-white/10 text-center flex flex-col items-center gap-10">
-            <a href="https://consultoquesite.netlify.app/" target="_blank" rel="noopener noreferrer" className="group">
+            <a href="https://consultoque.com.br/play" target="_blank" rel="noopener noreferrer" className="group">
               <img src="/consultoque.webp" alt="ConsulToque" className="h-28 w-auto opacity-70 group-hover:opacity-100" />
               <p className="text-sm text-gray-300 mt-3 uppercase tracking-widest font-bold">Parceiro Apoiador</p>
             </a>
