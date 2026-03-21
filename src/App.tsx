@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Upload, Calendar, Briefcase, Copy, Check, Info, UserCheck } from 'lucide-react';
 
 interface FormData {
@@ -23,6 +23,7 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [copied, setCopied] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
 
   const scenarios = [
     { id: 'encontro-casual.webp', label: 'Opção 1: Encontro Casual', image: '/encontro-casual.webp' },
@@ -31,6 +32,14 @@ function App() {
   ];
 
   const pixEmail = "contato@saintsolution.com.br";
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(pixEmail);
@@ -47,6 +56,7 @@ function App() {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
       setFormData(prev => ({ ...prev, image: file }));
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
@@ -105,7 +115,7 @@ function App() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        height: parseInt(formData.height, 10), // Convertido para número para o algoritmo do n8n
+        height: parseInt(formData.height, 10),
         scenario: formData.scenario,
         image: compressedImage,
         fileName: `${Date.now()}_${formData.name.split(' ')[0].toLowerCase()}.jpg`
@@ -120,6 +130,7 @@ function App() {
       if (response.ok) {
         setSubmitMessage('Sucesso! Sua foto está sendo processada. Verifique seu e-mail em instantes.');
         setFormData({ name: '', email: '', phone: '', height: '', scenario: '', image: null });
+        setImagePreview('');
         
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         if (fileInput) fileInput.value = "";
@@ -267,11 +278,27 @@ function App() {
                   <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                   <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-300 rounded-[2rem] group-hover:border-[#006400] bg-white">
                     <Upload className="w-10 h-10 mb-4 text-gray-300 group-hover:text-[#006400]" />
-                    <span className="text-gray-500 font-bold uppercase text-xs">
+                    <span className="text-gray-500 font-bold uppercase text-xs text-center">
                       {formData.image ? formData.image.name : 'Selecione sua foto'}
+                    </span>
+                    <span className="text-[11px] text-gray-400 mt-2 uppercase tracking-wide text-center">
+                      Foto frontal ou levemente lateral para melhor resultado
                     </span>
                   </div>
                 </label>
+
+                {imagePreview && (
+                  <div className="bg-white border border-gray-200 rounded-[2rem] p-4 shadow-sm">
+                    <p className="text-[#003366] font-black uppercase tracking-widest text-xs text-center mb-4">
+                      Prévia da foto enviada
+                    </p>
+                    <img
+                      src={imagePreview}
+                      alt="Prévia da imagem enviada"
+                      className="max-h-[420px] w-auto mx-auto rounded-[1.5rem] object-contain"
+                    />
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -327,7 +354,7 @@ function App() {
                 <span className="text-sm uppercase tracking-widest font-bold">Disclaimer Legal</span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed uppercase tracking-wide">
-                Uso pessoal e de entretenimento. Sem valor oficial ou propaganda política. O usuário é o único responsável pelo uso das imagens geradas.
+                Este site possui caráter exclusivamente recreativo e de uso pessoal. As imagens geradas são montagens digitais sem vínculo oficial, institucional ou político com qualquer pessoa, organização ou campanha. O conteúdo não deve ser interpretado como apoio, propaganda eleitoral ou posicionamento político de qualquer natureza. Ao utilizar a plataforma, o usuário declara possuir autorização e responsabilidade sobre a imagem enviada, bem como pelo uso, compartilhamento e divulgação do material gerado.
               </p>
             </div>
           </div>
