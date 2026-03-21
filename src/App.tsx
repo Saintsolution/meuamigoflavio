@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Upload, Calendar, Briefcase, Copy, Check, Info, UserCheck } from 'lucide-react';
 
 interface FormData {
   name: string;
   email: string;
-  phone: string; 
+  phone: string;
   height: string;
   scenario: string;
   image: File | null;
@@ -24,6 +24,9 @@ function App() {
   const [submitMessage, setSubmitMessage] = useState('');
   const [copied, setCopied] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
+  const [imageConfirmed, setImageConfirmed] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const scenarios = [
     { id: 'encontro-casual.webp', label: 'Opção 1: Encontro Casual', image: '/encontro-casual.webp' },
@@ -55,20 +58,40 @@ function App() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+
+      const previewUrl = URL.createObjectURL(file);
+
       setFormData(prev => ({ ...prev, image: file }));
-      setImagePreview(URL.createObjectURL(file));
+      setImagePreview(previewUrl);
+      setImageConfirmed(false);
+      setSubmitMessage('');
     }
+  };
+
+  const handleChangePhoto = () => {
+    setImageConfirmed(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleConfirmPhoto = () => {
+    setImageConfirmed(true);
+    setSubmitMessage('');
   };
 
   const compressAndSend = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      
+
       reader.onload = (event) => {
         const img = new Image();
         img.src = event.target?.result as string;
-        
+
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
@@ -89,8 +112,10 @@ function App() {
           const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
           resolve(base64);
         };
+
         img.onerror = reject;
       };
+
       reader.onerror = reject;
     });
   };
@@ -105,6 +130,12 @@ function App() {
     try {
       if (!formData.image) {
         setSubmitMessage('Por favor, selecione uma foto antes de gerar.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!imageConfirmed) {
+        setSubmitMessage('Confirme a foto enviada antes de gerar.');
         setIsSubmitting(false);
         return;
       }
@@ -130,14 +161,20 @@ function App() {
       if (response.ok) {
         setSubmitMessage('Sucesso! Sua foto está sendo processada. Verifique seu e-mail em instantes.');
         setFormData({ name: '', email: '', phone: '', height: '', scenario: '', image: null });
+
+        if (imagePreview) {
+          URL.revokeObjectURL(imagePreview);
+        }
+
         setImagePreview('');
-        
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-        if (fileInput) fileInput.value = "";
+        setImageConfirmed(false);
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       } else {
         setSubmitMessage('Erro no envio. Tente novamente em alguns instantes.');
       }
-
     } catch (error) {
       console.error(error);
       setSubmitMessage('Erro ao processar. Tente uma foto diferente ou verifique sua conexão.');
@@ -275,7 +312,13 @@ function App() {
 
               <div className="flex flex-col gap-8">
                 <label className="cursor-pointer group">
-                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
                   <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-300 rounded-[2rem] group-hover:border-[#006400] bg-white">
                     <Upload className="w-10 h-10 mb-4 text-gray-300 group-hover:text-[#006400]" />
                     <span className="text-gray-500 font-bold uppercase text-xs text-center">
@@ -292,17 +335,40 @@ function App() {
                     <p className="text-[#003366] font-black uppercase tracking-widest text-xs text-center mb-4">
                       Prévia da foto enviada
                     </p>
+
                     <img
                       src={imagePreview}
                       alt="Prévia da imagem enviada"
                       className="max-h-[420px] w-auto mx-auto rounded-[1.5rem] object-contain"
                     />
+
+                    <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                      <button
+                        type="button"
+                        onClick={handleChangePhoto}
+                        className="px-6 py-3 rounded-xl border-2 border-gray-300 text-gray-700 font-bold uppercase text-sm"
+                      >
+                        Trocar Foto
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleConfirmPhoto}
+                        className={`px-6 py-3 rounded-xl font-bold uppercase text-sm ${
+                          imageConfirmed
+                            ? 'bg-[#006400] text-white'
+                            : 'bg-[#FFD700] text-[#003366]'
+                        }`}
+                      >
+                        {imageConfirmed ? 'Foto Confirmada' : 'Confirmar Foto'}
+                      </button>
+                    </div>
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  disabled={isSubmitting || !formData.scenario || !formData.image}
+                  disabled={isSubmitting || !formData.scenario || !formData.image || !imageConfirmed}
                   className="w-full bg-[#006400] text-[#FFD700] font-black py-7 rounded-[2rem] shadow-2xl disabled:opacity-30 text-2xl uppercase tracking-[0.2em]"
                 >
                   {isSubmitting ? 'Gerando sua foto...' : 'Gerar Minha Foto'}
@@ -333,7 +399,7 @@ function App() {
               <div className="bg-white p-3 rounded-2xl">
                 <img src="/qrcode.png" alt="QR Code PIX" className="w-40 h-40" />
               </div>
-              <button 
+              <button
                 onClick={copyToClipboard}
                 className="flex items-center gap-2 bg-[#FFD700] text-[#006400] px-6 py-3 rounded-full font-black text-xs uppercase tracking-tighter"
               >
