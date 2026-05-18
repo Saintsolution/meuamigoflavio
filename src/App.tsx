@@ -420,7 +420,7 @@ function App() {
                 <span className="text-sm uppercase tracking-widest font-bold">Disclaimer Legal</span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed uppercase tracking-wide">
-                Este site possui caráter exclusivamente recreativo. E é de uso pessoal. As imagens geradas são montagens digitais sem vínculo oficial, institucional ou político com qualquer pessoa, organização ou campanha. O conteúdo não deve ser interpretado como apoio, propaganda eleitoral ou posicionamento político de qualquer natureza. Ao utilizar a plataforma, o usuário declara possuir autorização e responsabilidade sobre a imagem enviada, bem como pelo uso, compartilhamento e divulgação do material gerado.
+                Este site possui caráter exclusivamente recreativo e de uso pessoal. As imagens geradas são montagens digitais sem vínculo oficial, institucional ou político com qualquer pessoa, organização ou campanha. O conteúdo não deve ser interpretado como apoio, propaganda eleitoral ou posicionamento político de qualquer natureza. Ao utilizar a plataforma, o usuário declara possuir autorização e responsabilidade sobre a imagem enviada, bem como pelo uso, compartilhamento e divulgação do material gerado.
               </p>
             </div>
           </div>
