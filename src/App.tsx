@@ -410,7 +410,7 @@ function App() {
           </div>
 
           <div className="mt-16 pt-8 border-t border-white/10 text-center flex flex-col items-center gap-10">
-            <a href="https://consultoque.com.br/play" target="_blank" rel="noopener noreferrer" className="group">
+            <a href="https://consultoque.com.br/play/crianca-noite" target="_blank" rel="noopener noreferrer" className="group">
               <img src="/consultoque.webp" alt="ConsulToque" className="h-28 w-auto opacity-70 group-hover:opacity-100" />
               <p className="text-sm text-gray-300 mt-3 uppercase tracking-widest font-bold">Parceiro Apoiador</p>
             </a>
